@@ -1,44 +1,33 @@
-import k_fold
-import normalizer
-import parser
-import train_test_data_generator
-import display_module
+from random import sample
 
 
-def assignment_1():
-    # Print welcome screen
-    filename = display_module.display_content()
+def create_kfolds(dataset, k=10):
+    """ Gets the dataset and generates the training and testing data splices using the K-fold cross validation
 
-    # Read data fom the given csv file and return the complete dataset(attributes, class)
-    feature_attribute_set, dataset = parser.read_file(filename)
+    :param dataset:
+        dataset - list[list]: Dataset which contains the attributes and classes.
 
-    # Separate the attribute and class set
-    feature_set, class_set = parser.create_feature_class_set(dataset)
+            Example: [[0.23, 0.34, 0.33, 0.12, 0.45, 0.68, 'cp'], [0.13, 0.35, 0.01, 0.72, 0.25, 0.08, 'pp'], .... ]
 
-    # Creating class set
-    class_attribute_set = set(class_set)
+    :param k:
+        k - int: numbers of fold in the K-Fold cross validation (default value = 10)
 
-    # Find the maximum and minimum for the attributes
-    maximum, minimum = normalizer.maximum_minimum_features(feature_set)
+    Yields:
+        train_test_split - array[list[list]]: Contains k arrays of training and test data splices of dataset
 
-    # Create new normalized feature set
-    normalized_feature_set = normalizer.new_feature_set(feature_set, maximum, minimum)
-
-    # Create new normalized data set
-    normalized_data_set = parser.create_dataset(normalized_feature_set, class_set)
-
-    # K-Fold data set splitting
-    k = eval(input("\nEnter the value of 'K' for K Fold cross validation: "))
-    while type(k) != int:
-        k = eval(input("\nPlease enter an integer values for K: "))
-    train_test_split = k_fold.create_kfolds(normalized_data_set, k)
-
-    # Display the result
-    option = 0
-    display_module.display_options()
-    while option != 7:
-        option = eval(input("\nEnter Option: "))
-        display_module.switch(option, feature_attribute_set, class_attribute_set, class_set, train_test_split)
-
-
-assignment_1()
+            Example: [[[0.23, 0.34, 0.33, 0.12, 0.45, 0.68], [0.13, 0.35, 0.01, 0.72, 0.25, 0.08], ....] , .... ,
+                    [[0.12, 0.45, 0.23, 0.64, 0.67, 0.98], [0.20, 0.50, 0.23, 0.12, 0.32, 0.88], ....]]
+    """
+    train_test_split = []
+    size = len(dataset)
+    num_of_elements = int(size / k)
+    for i in range(k):
+        new_sample = sample(dataset, num_of_elements)
+        train_test_split.append(new_sample)
+        for row in new_sample:
+            dataset.remove(row)
+    if len(dataset) != 0:
+        for rows in range(len(dataset)):
+            train_test_split[rows].append(dataset[rows])
+        dataset.clear()
+    return train_test_split

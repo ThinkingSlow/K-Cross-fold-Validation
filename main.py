@@ -1,64 +1,44 @@
-def maximum_minimum_features(feature_set):
-    """ Gets the feature set and generates the maximum and minimum lists of all the attributes.
-
-    :param feature_set:
-        features_set - list[list]: Feature set which contains the feature/attribute values.
-
-            Example: [[0.23, 0.34, 0.33, 0.12, 0.45, 0.68], [0.13, 0.35, 0.01, 0.72, 0.25, 0.08], ....]
-
-    Yields:
-        maximum - list[float]: The maximum values of the attributes.
-
-            Example: [0.1, 0.23, 0.21, 0.34, 0.13, 0.69]
-
-        minimum - list[float]: The minimum values of the attributes.
-
-            Example: [0.91, 0.63, 0.31, 0.74, 0.23, 0.89]
-    """
-    size = len(feature_set[0])
-    temp_list = []
-    maximum = []
-    minimum = []
-    for x in range(size):
-        for y in feature_set:
-            temp_list.append(y[x])
-        max_val = max(temp_list)
-        min_val = min(temp_list)
-        temp_list.clear()
-        maximum.append(max_val)
-        minimum.append(min_val)
-    return maximum, minimum
+import k_fold
+import normalizer
+import parser
+import train_test_data_generator
+import display_module
 
 
-def new_feature_set(feature_set, maximum, minimum):
-    """ Gets the feature set, maximum list, minimum and returns the normalized attribute set.
+def assignment_1():
+    # Print welcome screen
+    filename = display_module.display_content()
 
-    :param feature_set:
-        features_set - list[list]: Feature set which contains the feature/attribute values.
+    # Read data fom the given csv file and return the complete dataset(attributes, class)
+    feature_attribute_set, dataset = parser.read_file(filename)
 
-            Example: [[0.23, 0.34, 0.33, 0.12, 0.45, 0.68], [0.13, 0.35, 0.01, 0.72, 0.25, 0.08], ....]
+    # Separate the attribute and class set
+    feature_set, class_set = parser.create_feature_class_set(dataset)
 
-    :param maximum:
-        maximum - list[float]: The maximum values of the attributes.
+    # Creating class set
+    class_attribute_set = set(class_set)
 
-            Example: [0.1, 0.23, 0.21, 0.34, 0.13, 0.69]
+    # Find the maximum and minimum for the attributes
+    maximum, minimum = normalizer.maximum_minimum_features(feature_set)
 
-    :param minimum:
-        minimum - list[float]: The minimum values of the attributes.
+    # Create new normalized feature set
+    normalized_feature_set = normalizer.new_feature_set(feature_set, maximum, minimum)
 
-            Example: [0.91, 0.63, 0.31, 0.74, 0.23, 0.89]
+    # Create new normalized data set
+    normalized_data_set = parser.create_dataset(normalized_feature_set, class_set)
 
-    Yields:
-        new_features_set - list[list]: Feature set which contains the normalized feature/attribute values.
+    # K-Fold data set splitting
+    k = eval(input("\nEnter the value of 'K' for K Fold cross validation: "))
+    while type(k) != int:
+        k = eval(input("\nPlease enter an integer values for K: "))
+    train_test_split = k_fold.create_kfolds(normalized_data_set, k)
 
-            Example: [[0.23, 0.34, 0.33, 0.12, 0.45, 0.68], [0.13, 0.35, 0.01, 0.72, 0.25, 0.08], ....]
-    """
-    size = len(feature_set[0])
-    for x in range(size):
-        for y in feature_set:
-            temp_max = float(maximum[x])
-            temp_min = float(minimum[x])
-            old_value = float(y[x])
-            new_value = round((old_value - temp_min) / (temp_max - temp_min), 2)
-            y[x] = new_value
-    return feature_set
+    # Display the result
+    option = 0
+    display_module.display_options()
+    while option != 7:
+        option = eval(input("\nEnter Option: "))
+        display_module.switch(option, feature_attribute_set, class_attribute_set, class_set, train_test_split)
+
+
+assignment_1()

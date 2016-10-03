@@ -1,47 +1,77 @@
-import random
+import csv
 
 
-def generate_data(train_test_split):
-    """ Generates the training and testing data from the splited data
+def read_file(filename):
+    """ Read file gets an input file(csv) from the same directory and generates a features and dataset.
 
-    :param train_test_split:
-        train_test_split - array[list[list]]: Contains k arrays of training and test data splices of dataset
+    :param filename:
+        filename - string: The filename of the csv file in the folder.
 
-            Example: [[[0.23, 0.34, 0.33, 0.12, 0.45, 0.68], [0.13, 0.35, 0.01, 0.72, 0.25, 0.08], ....] , .... ,
-                    [[0.12, 0.45, 0.23, 0.64, 0.67, 0.98], [0.20, 0.50, 0.23, 0.12, 0.32, 0.88], ....]]
-
-    :param test_index:
-        test_index - int : Index of the test data to be split from the train_test_split
-
-            Example: 5
+            Example: ecoli.csv
 
     Yields:
+        feature_attribute_set: Generates the various attributes of dataset
 
-    train_data:
-        train_data - array[list]: Contains k arrays of train data of dataset
+        dataset - list[list]: Dataset which contains the attributes and classes.
 
-            Example: [[0.23, 0.34, 0.33, 0.12, 0.45, 0.68], [0.13, 0.35, 0.01, 0.72, 0.25, 0.08], ... , .... ,
-                    [0.12, 0.45, 0.23, 0.64, 0.67, 0.98], [0.20, 0.50, 0.23, 0.12, 0.32, 0.88], ....]
-
-    train_data:
-        test_data - array[list]: Contains k arrays of test data of dataset
-
-            Example: [[0.23, 0.34, 0.33, 0.12, 0.45, 0.68], [0.13, 0.35, 0.01, 0.72, 0.25, 0.08], ... , .... ,
-                    [0.12, 0.45, 0.23, 0.64, 0.67, 0.98], [0.20, 0.50, 0.23, 0.12, 0.32, 0.88], ....]
+            Example: [[0.23, 0.34, 0.33, 0.12, 0.45, 0.68, 'cp'], [0.13, 0.35, 0.01, 0.72, 0.25, 0.08, 'pp'], .... ]
     """
-    test_index = eval(
-        input("\nPlease enter the partition number to be used as test data (Press 0 for random partition): "))
-    while type(test_index) != int:
-        test_index = eval(input("\nPlease enter an integer values for the partition to be used as test data: "))
-    split = train_test_split[:]
-    if test_index != 0:
-        real_index = test_index - 1
-    else:
-        real_index = random.randrange(0, len(split))
-    test_data = split[real_index]
-    split.remove(test_data)
-    train_data = []
-    for x in split:
-        for y in x:
-            train_data.append(y)
-    return train_data, test_data
+    with open(filename, 'r') as data:
+        data_vals = []
+        reader = csv.reader(data)
+        for row in reader:
+            data_vals.append(row)
+        dataset = data_vals[1:]
+        data_vals[0].pop()
+        feature_attribute_set = data_vals[0]
+    return feature_attribute_set, dataset
+
+
+def create_feature_class_set(dataset):
+    """ Gets the dataset and generates a feature set and class set.
+
+    :param dataset:
+        dataset - list[list]: The dataset which contains the attributes and classes.
+
+            Example: [[0.23, 0.34, 0.33, 0.12, 0.45, 0.68, 'cp'], [0.13, 0.35, 0.01, 0.72, 0.25, 0.08, 'pp'], .... ]
+
+    Yields:
+        features_set - list[list]: Feature set which contains the feature/attribute values.
+
+            Example: [[0.23, 0.34, 0.33, 0.12, 0.45, 0.68], [0.13, 0.35, 0.01, 0.72, 0.25, 0.08], ....]
+
+        class_set - list[list]: Class set which contains the class values.
+
+            Example: ['cp', 'pp', ....]
+    """
+    feature_set = []
+    class_set = []
+    for row in dataset:
+        size = len(row) - 1
+        feature_set.append(row[:size])
+        class_set.append(''.join(row[size:]))
+    return feature_set, class_set
+
+
+def create_dataset(feature_set, class_set):
+    """ Gets the feature and class set to generate the dataset.
+
+    :param feature_set:
+        features_set - list[list]: Feature set which contains the feature/attribute values.
+
+            Example: [[0.23, 0.34, 0.33, 0.12, 0.45, 0.68], [0.13, 0.35, 0.01, 0.72, 0.25, 0.08], ....]
+
+    :param class_set:
+        class_set - list[list]: Class set which contains the class values.
+
+            Example: ['cp', 'pp', ....]
+
+    Yields:
+        dataset - list[list]: The dataset which contains the attributes and classes.
+
+            Example: [[0.23, 0.34, 0.33, 0.12, 0.45, 0.68, 'cp'], [0.13, 0.35, 0.01, 0.72, 0.25, 0.08, 'pp'], .... ]
+    """
+    for index in range(len(feature_set)):
+        feature_set[index].append(class_set[index])
+    return feature_set
+
